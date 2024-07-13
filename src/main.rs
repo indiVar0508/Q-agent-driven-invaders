@@ -165,6 +165,16 @@ fn main() -> Result<(), Box<dyn Error>> {
         for drawable in drawables {
             drawable.draw(&mut curr_frame);
         }
+        if rusty_bot {
+            score.write_best_score(&mut curr_frame);
+            let formatted = format!("GEN: {}", game_number);
+
+            // iterate over all characters
+            for (i, c) in formatted.chars().enumerate() {
+                // put them in the first row
+                curr_frame[i+20][1] = c;
+            }
+        }
         let _ = render_tx.send(curr_frame);
         thread::sleep(Duration::from_millis(1));
 
@@ -183,9 +193,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             audio.play("lose");
             reset_game(&mut in_menu, &mut player, &mut invaders, rusty_bot, game_number);
             game_number += 1;
+            score.update_best_points();
+            score.reset_count();
         }
         let new_state = agent.get_state(&mut invaders, &mut player);
-        agent.learn(current_state, action, reward, new_state);
+        agent.learn(current_state, action, reward, new_state);   
     }
 
     // Cleanup
