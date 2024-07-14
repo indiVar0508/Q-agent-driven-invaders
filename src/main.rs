@@ -22,8 +22,8 @@ use invaders::{
     rusty_bot::Agent,
 };
 
-const RUSTY_BOT_MAX_GAMES_TO_LEARN: i32 = 50;
-const MAX_STEPS_ALLOWED: u16 = 15_000; // 15_000 // 60(fps) -> 250
+const RUSTY_BOT_MAX_GAMES_TO_LEARN: i32 = 500;
+const MAX_STEPS_ALLOWED: u16 = 45_000; // 45_000 // 60(fps) -> 750
 
 fn render_screen(render_rx: Receiver<Frame>) {
     let mut last_frame = frame::new_frame();
@@ -44,6 +44,24 @@ fn reset_game(in_menu: &mut bool, player: &mut Player, invaders: &mut Invaders, 
     }
     *player = Player::new();
     *invaders = Invaders::new();
+}
+
+fn write_agent_brain(q_table_brain: &Vec<Vec<f32>>) {
+    // FIXME: try catch thing ? not working ToT
+    fs::remove_file("q_table.csv").expect("could not remove file");
+    let mut q_table = OpenOptions::new().create_new(true)
+    .append(true)
+    .open("q_table.csv")
+    .expect("cannot open file");
+    q_table.write("left,right,shoot\n".as_bytes()).expect("write failed");
+    for row in q_table_brain.iter() {
+        for val in row.iter() {
+            q_table.write(format!("{},", val.to_string()).as_bytes()).expect("failed to write");
+        }
+        q_table.write("\n".as_bytes()).expect("failed to write");
+        // row.iter().map(|value| {format!("{}", value)}).into_iter().;
+    }
+
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -74,25 +92,25 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut in_menu = true;
     let mut level = Level::new();
     let mut rusty_bot: bool = false;
-    let mut agent: Agent = Agent::new(0.05, 0.9);
+    let mut agent: Agent = Agent::new(0.09, 0.98);
     let mut game_number = 1;
     let mut current_state;
     let mut action;
-    let mut reward = 0.0;
-    let mut scores_array = Vec::<Vec<u16>>::new();
     let mut steps: u16 = 0;
     fs::remove_file("data.csv").expect("could not remove file");
-    let mut data_file = OpenOptions::new().create_new(true)
+    let mut score_data_file = OpenOptions::new().create_new(true)
     .append(true)
     .open("data.csv")
     .expect("cannot open file");
-    data_file.write("score,best_score\n0,0".as_bytes()).expect("write failed");
+    score_data_file.write("score,best_score\n0,0".as_bytes()).expect("write failed");
+    write_agent_brain(&agent.q_table);
 
     'gameloop: loop {
         // Per-frame inittxt
         let delta = instant.elapsed();
         instant = Instant::now();
         let mut curr_frame = new_frame();
+        let mut reward = 0.0;
 
         if in_menu {
             // Input handlers for the menu
@@ -166,10 +184,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             score.add_points(hits);
             // % of hits of remaining army
             // reward += (hits as f32) / ((1.0 + invaders.army.len() as f32) - hits as f32);
-            reward += 0.05;
-        }
-        else {
-            reward -= 0.01;
+            reward += 2.0;
         }
         // Draw & render
 
@@ -194,9 +209,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         if invaders.all_killed() {
             if level.increment_level() {
                 audio.play("win");
+                score.update_best_points();
                 // reward += 1.0;
                 let new_state = agent.get_state(&mut invaders, &mut player);
                 agent.learn(current_state, action, reward, new_state);
+                score_data_file
+                    .write(format!("\n{},{}", score.get_count(), score.get_best_score()).as_bytes())
+                    .expect("write failed");
+                write_agent_brain(&agent.q_table);
                 break 'gameloop;
             }
             invaders = Invaders::new();
@@ -207,16 +227,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             game_number += 1;
             score.update_best_points();
             // Write to a file
-            data_file
+            score_data_file
                 .write(format!("\n{},{}", score.get_count(), score.get_best_score()).as_bytes())
                 .expect("write failed");
             score.reset_count();
             steps = 0;
-    
-            scores_array.push(vec![score.get_count(), score.get_best_score()]);
+            write_agent_brain(&agent.q_table);
         }
         let new_state = agent.get_state(&mut invaders, &mut player);
-        agent.learn(current_state, action, reward, new_state);   
+
+        agent.learn(current_state, action, reward, new_state);  
+        write_agent_brain(&agent.q_table); 
     }
 
     // Cleanup

@@ -43,7 +43,7 @@
 use crate::{invaders::Invaders, player::Player};
 
 pub struct Agent {
-  q_table: Vec<Vec<f32>>,
+  pub q_table: Vec<Vec<f32>>,
   learning_rate: f32,
   gamma: f32, 
 }
@@ -70,7 +70,7 @@ impl Agent {
             2 -> `>=17 && < 21`
             3 -> `>=21 && < 25`
             4 -> `>=25 && < 30`
-        there are 15 states that an agent can be in, we can get the final using following formula
+        there are 30 states that an agent can be in, we can get the final using following formula
           15 * direction + (5 * state_player_relative_position + state_invader_vertical_postion)
       */
       let player_position = (*player).get_x();

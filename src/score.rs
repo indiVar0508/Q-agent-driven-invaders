@@ -17,7 +17,7 @@ impl Score {
 
     pub fn update_best_points(&mut self) {
         if self.count > self.best_score{
-            self.best_score += self.count;
+            self.best_score = self.count;
         }
     }
 
