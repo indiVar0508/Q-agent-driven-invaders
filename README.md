@@ -1,8 +1,26 @@
+# Q-Agent Driven Invaders
+
+This is a forked project from [CleanCut/invaders](https://github.com/CleanCut/invaders), this project implements a Q-Learning agent which tries to play the game on its own and learning, this project also provides ability to visualize agent performance over time
+
+```py
+# assumes you have created your own personal venv
+# to visualize agent performance
+pip install matplotlib seaborn
+# then run the visualiser
+python visualiser
+```
+
+## To run the game
+
+```sh
+cargo run
+```
+
 # Invaders
 
 Invaders is an open source terminal arcade game with audio, based off of the "Space Invaders" classic arcade game.
 
-This game was initially developed for a presentation at [OSCON Open Source Software Superstream Series: Live Coding—Go, Rust, and Python](https://learning.oreilly.com/live-training/courses/oscon-open-source-software-superstream-series-live-codinggo-rust-and-python/0636920410188/) and then adapted for inclusion as an example project for the 2020 version of [Ultimate Rust Crash Course](https://www.udemy.com/course/ultimate-rust-crash-course/?referralCode=AF30FAD8C6CCCC2C94F0).  The tags `part-1`, `part-2`, etc. correspond to the various stages of the original presentation.
+This game was initially developed for a presentation at [OSCON Open Source Software Superstream Series: Live Coding—Go, Rust, and Python](https://learning.oreilly.com/live-training/courses/oscon-open-source-software-superstream-series-live-codinggo-rust-and-python/0636920410188/) and then adapted for inclusion as an example project for the 2020 version of [Ultimate Rust Crash Course](https://www.udemy.com/course/ultimate-rust-crash-course/?referralCode=AF30FAD8C6CCCC2C94F0). The tags `part-1`, `part-2`, etc. correspond to the various stages of the original presentation.
 
 Since the original presentations, folks continue to tinker and improve the game. Feel free to fork this repository, make a change, and submit a pull request if you have a good idea!
 
@@ -22,9 +40,9 @@ You may listen to the sounds on [Musescore.com](https://musescore.com/user/90475
 
 ### Dependencies on Linux
 
-Audio should work out-of-the-box on macOS, Windows, and iOS.  For Linux, the
+Audio should work out-of-the-box on macOS, Windows, and iOS. For Linux, the
 downstream package for actually _playing_ sound ([CPAL]) requires
-the *Alsa* development libraries to be installed.
+the _Alsa_ development libraries to be installed.
 
 **CentOS**
 
@@ -37,20 +55,22 @@ sudo yum install -y alsa-lib-devel
 ```bash
 sudo apt install libasound2-dev pkg-config
 ```
+
 **Arch Linux**
 
 ```bash
 sudo pacman -S alsa-lib pkgconf libx11
 ```
+
 You will also need `pipewire-alsa` or `pulseaudio-alsa` depending on the sound server you are using.
 
 ## Community Games!
 
 Were you inspired to make your own terminal-based game? Open a PR to add it to the list here!
 
-* [Pong](https://github.com/basilkohler/rusty_pong)
-* [TETRIS](https://github.com/madchicken/rust-tetris)
-* [Columns](https://github.com/Rendez/rust_columns)
+- [Pong](https://github.com/basilkohler/rusty_pong)
+- [TETRIS](https://github.com/madchicken/rust-tetris)
+- [Columns](https://github.com/Rendez/rust_columns)
 
 ## Contribution
 
