@@ -8,7 +8,9 @@ use rusty_audio::Audio;
 use std::{
     error::Error, io, sync::mpsc::{self, Receiver}, thread::{self}, time::{Duration, Instant}
 };
-
+use std::io::Write;
+use std::fs::OpenOptions;
+use std::fs;
 use invaders::{
     frame::{self, new_frame, Drawable, Frame},
     invaders::Invaders,
@@ -21,6 +23,7 @@ use invaders::{
 };
 
 const RUSTY_BOT_MAX_GAMES_TO_LEARN: i32 = 50;
+const MAX_STEPS_ALLOWED: u16 = 15_000; // 15_000 // 60(fps) -> 250
 
 fn render_screen(render_rx: Receiver<Frame>) {
     let mut last_frame = frame::new_frame();
@@ -76,9 +79,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut current_state;
     let mut action;
     let mut reward = 0.0;
+    let mut scores_array = Vec::<Vec<u16>>::new();
+    let mut steps: u16 = 0;
+    fs::remove_file("data.csv").expect("could not remove file");
+    let mut data_file = OpenOptions::new().create_new(true)
+    .append(true)
+    .open("data.csv")
+    .expect("cannot open file");
+    data_file.write("score,best_score\n0,0".as_bytes()).expect("write failed");
 
     'gameloop: loop {
-        // Per-frame init
+        // Per-frame inittxt
         let delta = instant.elapsed();
         instant = Instant::now();
         let mut curr_frame = new_frame();
@@ -142,6 +153,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 2 => {player.shoot();},
                 _ => {}
             }
+            steps += 1;
         }
         // Updates
         player.update(delta);
@@ -188,13 +200,20 @@ fn main() -> Result<(), Box<dyn Error>> {
                 break 'gameloop;
             }
             invaders = Invaders::new();
-        } else if invaders.reached_bottom() {
+        } else if (invaders.reached_bottom()) || (rusty_bot == true && steps > MAX_STEPS_ALLOWED) {
             // reward -= 1.0;
             audio.play("lose");
             reset_game(&mut in_menu, &mut player, &mut invaders, rusty_bot, game_number);
             game_number += 1;
             score.update_best_points();
+            // Write to a file
+            data_file
+                .write(format!("\n{},{}", score.get_count(), score.get_best_score()).as_bytes())
+                .expect("write failed");
             score.reset_count();
+            steps = 0;
+    
+            scores_array.push(vec![score.get_count(), score.get_best_score()]);
         }
         let new_state = agent.get_state(&mut invaders, &mut player);
         agent.learn(current_state, action, reward, new_state);   

@@ -25,6 +25,14 @@ impl Score {
         self.count = 0;
     }
 
+    pub fn get_count(&mut self) -> u16 {
+        self.count
+    }
+
+    pub fn get_best_score(&mut self) -> u16 {
+        self.best_score
+    }
+
     pub fn write_best_score(&self, frame: &mut Frame) {
         // format our score string
         let formatted = format!("Best SCORE: {:0>4}", self.best_score);
